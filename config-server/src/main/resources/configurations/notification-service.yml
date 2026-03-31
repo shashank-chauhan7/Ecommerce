@@ -1,0 +1,44 @@
+server:
+  port: 8087
+
+spring:
+  application:
+    name: notification-service
+  threads:
+    virtual:
+      enabled: true
+  kafka:
+    bootstrap-servers: kafka:29092
+    consumer:
+      group-id: notification-service-group
+      auto-offset-reset: earliest
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:your-email@gmail.com}
+    password: ${MAIL_PASSWORD:your-app-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connection-timeout: 5000
+          timeout: 5000
+          write-timeout: 5000
+
+notification:
+  from-email: ${NOTIFICATION_FROM_EMAIL:noreply@ecommerce.com}
+  templates:
+    order-confirmation: order-confirmation
+    payment-success: payment-success
+    shipping-update: shipping-update
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  tracing:
+    sampling:
+      probability: 1.0

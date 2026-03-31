@@ -1,0 +1,139 @@
+# ========================
+# Java
+# ========================
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+*.ctxt
+
+# ========================
+# Maven
+# ========================
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ========================
+# Gradle (if ever used)
+# ========================
+.gradle/
+build/
+
+# ========================
+# IDE - IntelliJ IDEA
+# ========================
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# ========================
+# IDE - Eclipse
+# ========================
+.settings/
+.project
+.classpath
+.factorypath
+bin/
+
+# ========================
+# IDE - VS Code
+# ========================
+.vscode/
+*.code-workspace
+
+# ========================
+# IDE - NetBeans
+# ========================
+nbproject/private/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+# ========================
+# Spring Boot
+# ========================
+*.log
+*.log.*
+logs/
+
+# ========================
+# Environment & Secrets
+# ========================
+.env
+*.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+*.truststore
+credentials.json
+secrets.yml
+secrets.yaml
+
+# ========================
+# Docker
+# ========================
+docker-volumes/
+*.pid
+
+# ========================
+# OS Files
+# ========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ========================
+# Test & Coverage
+# ========================
+*.exec
+jacoco.exec
+coverage/
+test-output/
+.cache/
+
+# ========================
+# Node (for frontend tooling if any)
+# ========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ========================
+# Personal / Local Only
+# ========================
+INTERVIEW_PREP_GUIDE.md
+
+# ========================
+# Misc
+# ========================
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+*.orig
+.flattened-pom.xml

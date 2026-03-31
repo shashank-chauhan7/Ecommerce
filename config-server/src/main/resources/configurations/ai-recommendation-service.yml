@@ -1,0 +1,38 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: ai-recommendation-service
+  threads:
+    virtual:
+      enabled: true
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:your-openai-api-key}
+      chat:
+        options:
+          model: gpt-4o
+          temperature: 0.7
+      embedding:
+        options:
+          model: text-embedding-3-small
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password: ${REDIS_PASSWORD:redis_secret}
+
+recommendation:
+  cache:
+    ttl: 3600
+  max-results: 10
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  tracing:
+    sampling:
+      probability: 1.0

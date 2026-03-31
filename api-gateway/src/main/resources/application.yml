@@ -1,0 +1,65 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  config:
+    import: optional:configserver:http://localhost:8888
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 100
+            redis-rate-limiter.burstCapacity: 200
+            redis-rate-limiter.requestedTokens: 1
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+app:
+  jwt:
+    secret: placeholder-jwt-secret-key-that-should-be-at-least-256-bits
+
+# Aggregated Swagger UI -- a recruiter hits http://localhost:8080/swagger-ui.html
+# and can pick any service from the dropdown to explore its APIs.
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: Auth Service
+        url: /service-docs/auth/v3/api-docs
+      - name: User Service
+        url: /service-docs/user/v3/api-docs
+      - name: Product Service
+        url: /service-docs/product/v3/api-docs
+      - name: Inventory Service
+        url: /service-docs/inventory/v3/api-docs
+      - name: Order Service
+        url: /service-docs/order/v3/api-docs
+      - name: Payment Service
+        url: /service-docs/payment/v3/api-docs
+      - name: Search Service
+        url: /service-docs/search/v3/api-docs
+      - name: Notification Service
+        url: /service-docs/notification/v3/api-docs
+      - name: AI Recommendations
+        url: /service-docs/ai/v3/api-docs
+  api-docs:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true

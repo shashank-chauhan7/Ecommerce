@@ -1,0 +1,237 @@
+name: E-Commerce Platform CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  JAVA_VERSION: '21'
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/ecommerce
+
+permissions:
+  contents: read
+  packages: write
+  pull-requests: write
+
+jobs:
+  # ───────────────────────────────────────────
+  # Build & Test
+  # ───────────────────────────────────────────
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ecommerce
+          POSTGRES_PASSWORD: ecommerce_secret
+          POSTGRES_DB: ecommerce_auth
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ecommerce"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+
+      - name: Install Parent POM
+        run: mvn install -N -q
+
+      - name: Build Common Library
+        run: mvn install -pl common-lib -DskipTests -q
+
+      - name: Compile All Modules
+        run: mvn compile -pl config-server,api-gateway,auth-service,user-service,product-service,inventory-service,order-service,payment-service,notification-service,search-service,ai-recommendation-service -T 4
+
+      - name: Run Unit Tests
+        run: mvn test -pl config-server,api-gateway,auth-service,user-service,product-service,inventory-service,order-service,payment-service,notification-service,search-service,ai-recommendation-service -T 4
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: '**/target/surefire-reports/*.xml'
+          retention-days: 7
+
+      - name: Upload JaCoCo Coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: '**/target/site/jacoco/'
+          retention-days: 7
+
+      - name: Package All Services
+        run: mvn package -pl config-server,api-gateway,auth-service,user-service,product-service,inventory-service,order-service,payment-service,notification-service,search-service,ai-recommendation-service -DskipTests -T 4
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: service-jars
+          path: '**/target/*.jar'
+          retention-days: 1
+
+  # ───────────────────────────────────────────
+  # Integration Tests
+  # ───────────────────────────────────────────
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: build
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ecommerce
+          POSTGRES_PASSWORD: ecommerce_secret
+          POSTGRES_DB: ecommerce_auth
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ecommerce"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+
+      - name: Install Parent POM
+        run: mvn install -N -q
+
+      - name: Build Common Library
+        run: mvn install -pl common-lib -DskipTests -q
+
+      - name: Run Integration Tests
+        run: mvn verify -pl auth-service,order-service,payment-service,inventory-service -Pintegration-test
+
+      - name: Upload Integration Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-reports
+          path: '**/target/failsafe-reports/*.xml'
+          retention-days: 7
+
+  # ───────────────────────────────────────────
+  # Docker Build & Push
+  # ───────────────────────────────────────────
+  docker-build:
+    name: Docker Build & Push
+    runs-on: ubuntu-latest
+    needs: [build, integration-tests]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+
+    strategy:
+      matrix:
+        service:
+          - config-server
+          - api-gateway
+          - auth-service
+          - user-service
+          - product-service
+          - inventory-service
+          - order-service
+          - payment-service
+          - notification-service
+          - search-service
+          - ai-recommendation-service
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+
+      - name: Install Parent POM
+        run: mvn install -N -q
+
+      - name: Build Common Library
+        run: mvn install -pl common-lib -DskipTests -q
+
+      - name: Package ${{ matrix.service }}
+        run: mvn package -pl ${{ matrix.service }} -DskipTests -q
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.service }}
+          tags: |
+            type=sha,prefix=
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.service }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ───────────────────────────────────────────
+  # Deployment Note
+  # ───────────────────────────────────────────
+  # Docker images are pushed to GitHub Container Registry (ghcr.io)
+  # by the docker-build job above.
+  #
+  # To deploy to any Kubernetes cluster, use the manifests in k8s/:
+  #   kubectl apply -f k8s/infrastructure/
+  #   kubectl apply -f k8s/<service-name>/
+  #
+  # For AWS EKS deployment, configure these secrets and uncomment:
+  #   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Shipping Update</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: Arial, Helvetica, sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 0;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                <!-- Header -->
+                <tr>
+                    <td style="background-color: #27ae60; padding: 30px; text-align: center;">
+                        <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Your Order Has Shipped!</h1>
+                    </td>
+                </tr>
+                <!-- Body -->
+                <tr>
+                    <td style="padding: 30px;">
+                        <p style="color: #333333; font-size: 16px; margin-top: 0;">
+                            Great news! Your order is on its way.
+                        </p>
+
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9f9f9; border-radius: 6px; padding: 20px; margin: 20px 0;">
+                            <tr>
+                                <td style="padding-bottom: 15px;">
+                                    <p style="margin: 0 0 4px 0; color: #666666; font-size: 14px;">Order Number</p>
+                                    <p style="margin: 0; color: #2c3e50; font-size: 18px; font-weight: bold;" th:text="${orderId}">ORD-001</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding-bottom: 15px;">
+                                    <p style="margin: 0 0 4px 0; color: #666666; font-size: 14px;">Tracking Number</p>
+                                    <p style="margin: 0; color: #2c3e50; font-size: 18px; font-weight: bold;" th:text="${trackingNumber ?: 'Pending'}">TRACK-123</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p style="margin: 0 0 4px 0; color: #666666; font-size: 14px;">Carrier</p>
+                                    <p style="margin: 0; color: #2c3e50; font-size: 18px; font-weight: bold;" th:text="${carrier ?: 'N/A'}">FedEx</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <div th:if="${estimatedDelivery}" style="margin: 20px 0;">
+                            <h3 style="color: #27ae60;">Estimated Delivery</h3>
+                            <p th:text="${estimatedDelivery}" style="color: #555555; font-size: 16px; font-weight: bold;">Date</p>
+                        </div>
+
+                        <p style="color: #666666; font-size: 14px;">
+                            You can track your package using the tracking number above with your carrier's website.
+                        </p>
+                    </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                    <td style="background-color: #f9f9f9; padding: 20px; text-align: center; border-top: 1px solid #eeeeee;">
+                        <p style="color: #999999; font-size: 12px; margin: 0;">
+                            &copy; 2026 E-Commerce Platform. All rights reserved.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="APP_NAME" value="api-gateway"/>
+
+    <include resource="logback-common.xml"/>
+
+    <logger name="com.ecommerce.gateway" level="DEBUG"/>
+    <logger name="org.springframework.cloud.gateway" level="INFO"/>
+</configuration>
